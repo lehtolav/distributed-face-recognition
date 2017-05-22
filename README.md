@@ -5,4 +5,6 @@ The different sides of the program are installed on remote devices. The Pi side 
 
 The server side receives and saves the images, and optionally classifies them, sending the classification back to the Pi side.
 
+For now, any directories (e.g. the one to save the facial images in) are hardcoded and have to be adjusted from the files.
+
 The Pi side program was used on a Raspberry Pi 3, but should work with any device with a webcam.
