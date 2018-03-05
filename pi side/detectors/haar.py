@@ -1,14 +1,11 @@
 #Face detector
-#  Lock faces available lock.
+#  Lock "faces available"-lock.
 #  Successful:
 #    Grab the current frame.
 #    Find faces.
 #    Release faces available lock.
 #  Unsuccessful:
 #    Wait a short time and try again
-#
-#  notes:
-#    After fetching the faces, the main thread must empty the new faces list
 
 from threading import Lock
 import numpy as np

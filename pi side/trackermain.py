@@ -8,6 +8,7 @@
 #    Initiate new face trackers.
 #    Replace old frame.
 #    Release NewFrameAvailable lock.
+#    Process network messages
 #    Lock NewFrameAvailable lock.
 
 # It turned out that locks don't allow for queuing in order
@@ -54,7 +55,7 @@ class TrackerMain():
             self.messager.unregister('connect')
         
         if multiDetect > 0:
-            # Setup queue for multidetector
+            # Setup queue for multiple detectors
             # Detectors will be notified one at a time
             # at intervals of average detection time
             self.detectionQueue = Condition()
@@ -111,7 +112,7 @@ class TrackerMain():
         # See if there are any new faces waiting
         averageTime = 0
         for detector in self.faceDetectors:
-            detector.processFaces(self.bbProcessor)#.pruneAndAdd(self, 0.30))
+            detector.processFaces(self.bbProcessor)
             averageTime += detector.lastTime
 
         averageTime /= len(self.faceDetectors)
@@ -123,7 +124,7 @@ class TrackerMain():
             if self.frameUsers > 0:
                 self.usingCurrentFrame.wait()
 
-        # Draw boundingboxes etc. on the image
+        # Draw boundingboxes and labels (when available) on the image
         for tr in self.faceTrackers:
             tr.drawBB(self.writeFrame, 1 / self.trackerFrameSize)
 
@@ -140,9 +141,6 @@ class TrackerMain():
         # Show previous frame
         cv2.imshow(self.windowName, self.writeFrame)
 
-        # Initialize and start new face trackers
-        #self.makeNewFaceTracker(bb)
-
         # Replace old frames
         self.fullFrame = frame
         self.readFrame = cv2.resize( frame
@@ -158,16 +156,13 @@ class TrackerMain():
             if elapsedTime >= averageTime / len(self.faceDetectors):
                 self.startTime = clock()
                 with self.detectionQueue:
-                    #print 'notifying ' + str(averageTime) + ' ' + str(random.random())
                     self.detectionQueue.notify()
         
-        # Let other threads use this class and move to the end of the queue
+        # Let other threads use the current frame for a while
         self.newFrameAvailable.release()
-        #sleep(0.01)
         self.messager.processHost()
         tic = clock()
         self.newFrameAvailable.acquire()
-        #print 'aquiring lock took ' + str(clock() - tic)
         
     def stop(self):
         if self.multiDetect:
@@ -184,7 +179,7 @@ class TrackerMain():
             return cv2.resize( self.fullFrame
                              , (0, 0)
                              , fx=self.detectorFrameSize
-                             , fy=self.detectorFrameSize#np.copy(self.readFrame)
+                             , fy=self.detectorFrameSize
                              )
 
     def getReadWriteFrame(self):
@@ -204,18 +199,13 @@ class TrackerMain():
             f(self.writeFrame)
 
     def makeNewFaceTracker(self, bb):
-        #newTracker = FaceTracker(self, bb)
-        #Thread(None, newTracker).start()
-        #self.faceTrackers.append(newTracker)
-        #rate = self.trackerFrameSize / self.detectorFrameSize
-        #bb = np.int0(tuple(i * rate for i in bb))
+        # Invoke closure
         self.trackerMaker(self, bb)
 
     def sendMessage(self, messagetype, message):
         tic = clock()
         with self.netLock:
             messager.send_message(self.messageSock, messagetype, message)
-        #print 'sending data took ' + str(clock() - tic)
 
     def register(self, tracker, add):
         if add:

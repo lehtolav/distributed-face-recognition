@@ -12,3 +12,5 @@ To train classifiers, you can use the training program from openface (classifier
 To load a classifier run:  
 python load\_classifier.py path\_to\_classifier  
 while the server is running.
+
+Use Ctrl+C or Ctrl+D to stop the program (may not work on Windows).

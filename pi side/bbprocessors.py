@@ -5,15 +5,18 @@ import cv2
 import itertools
 import numpy as np
 
+# Shows rectangles around faces, but does not initiate trackers
 def showBoxes(main):
     def shower(faces):
         for bb in faces:
             (x, y, w, h) = np.int0(tuple(i / main.detectorFrameSize for i in bb))
             cv2.rectangle(main.writeFrame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+        # Seems I intended to return a list of boundingboxes, but changed the implementation
         return []
 
     return shower
 
+# Uses an overlapping threshold to determine if a new tracker should be launched for a face detection
 def pruneAndAdd(threshold):
     def f(main):
         def aux(faces):

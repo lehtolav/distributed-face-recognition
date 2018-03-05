@@ -1,4 +1,6 @@
 # High level conceptual view of client/server communication
+# Messages have two strings, first one indicates the type of the following message
+# Second is the actual message
 
 # The client(s) register objects to track with the trackers UUID
 #   messagetype = register, message = UUID
